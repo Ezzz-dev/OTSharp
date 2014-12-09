@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoginServer", "LoginServer\LoginServer.csproj", "{AB2D30B3-873D-47BE-AC50-CEF345FB34FA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameServer", "GameServer\GameServer.csproj", "{243DAB7D-F279-4C3B-9A94-D53993361178}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AB2D30B3-873D-47BE-AC50-CEF345FB34FA}.Debug|x86.ActiveCfg = Debug|x86
+		{AB2D30B3-873D-47BE-AC50-CEF345FB34FA}.Debug|x86.Build.0 = Debug|x86
+		{AB2D30B3-873D-47BE-AC50-CEF345FB34FA}.Release|x86.ActiveCfg = Release|x86
+		{AB2D30B3-873D-47BE-AC50-CEF345FB34FA}.Release|x86.Build.0 = Release|x86
+		{243DAB7D-F279-4C3B-9A94-D53993361178}.Debug|x86.ActiveCfg = Debug|x86
+		{243DAB7D-F279-4C3B-9A94-D53993361178}.Debug|x86.Build.0 = Debug|x86
+		{243DAB7D-F279-4C3B-9A94-D53993361178}.Release|x86.ActiveCfg = Release|x86
+		{243DAB7D-F279-4C3B-9A94-D53993361178}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
