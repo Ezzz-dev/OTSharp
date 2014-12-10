@@ -26,7 +26,7 @@ namespace GameServer.Utils
 {
     public struct Position
     {
-        public Position(int tX, int tY, byte tZ)
+        public Position(int tX, int tY, int tZ)
         {
             X = tX;
             Y = tY;
@@ -35,7 +35,7 @@ namespace GameServer.Utils
 
         public int X;
         public int Y;
-        public byte Z;
+        public int Z;
 
         /// <summary>
         /// Check if 2 positions are in 1x1 range

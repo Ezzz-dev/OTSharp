@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using GameServer.Utils;
+using GameServer.DataWorkers;
 
 namespace GameServer.Environment
 {
@@ -33,7 +34,10 @@ namespace GameServer.Environment
         public readonly int maxClientViewportY = 6;
 
         private Dictionary<Position, Tile> Tiles;
-
+        public string Description { get; set; }
+        
+        public string Spawns { get; set; }
+        public string Houses { get; set; }
         #endregion
 
         #region Initializator
@@ -45,7 +49,6 @@ namespace GameServer.Environment
         {
             Tiles = new Dictionary<Position, Tile>();
         }
-
         #endregion
 
         #region Load
@@ -68,6 +71,14 @@ namespace GameServer.Environment
             return true;
         }
 
+        /// <summary>
+        /// Load map from OTBM
+        /// </summary>
+        public void Load()
+        {
+            MapReader reader = new MapReader(@"Data\map.otbm");
+            reader.GetMapTiles(this);
+        }
         #endregion
 
         #region Get
@@ -84,6 +95,15 @@ namespace GameServer.Environment
             return tile;
         }
 
+        #endregion
+
+        #region Set
+        public bool setTile(Position pos, Tile tile)
+        {
+            tile.Position = pos;
+            Tiles[pos] = tile;
+            return true;
+        }
         #endregion
     }
 }

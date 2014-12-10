@@ -1,0 +1,5 @@
+E:\Ellestia Development\Tibiasharp\OTSharp\LoginServer\bin\Debug\LoginServer.exe.config
+E:\Ellestia Development\Tibiasharp\OTSharp\LoginServer\bin\Debug\LoginServer.exe
+E:\Ellestia Development\Tibiasharp\OTSharp\LoginServer\bin\Debug\LoginServer.pdb
+E:\Ellestia Development\Tibiasharp\OTSharp\LoginServer\obj\x86\Debug\LoginServer.exe
+E:\Ellestia Development\Tibiasharp\OTSharp\LoginServer\obj\x86\Debug\LoginServer.pdb
