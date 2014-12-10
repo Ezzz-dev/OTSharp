@@ -46,6 +46,12 @@ namespace GameServer.Environment
         /// </summary>
         public List<Creature> Creatures = new List<Creature>();
 
+        public bool IsProtectionZone = false;
+        public bool IsNoPvpZone = false;
+        public bool IsPvpZone = false;
+        public bool IsNoLogoutZone = false;
+        public bool IsRefreshZone = false;
+
         #endregion
 
         #region Functioning

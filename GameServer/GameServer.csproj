@@ -46,6 +46,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataWorkers\Defenitions.cs" />
+    <Compile Include="DataWorkers\FileManager.cs" />
+    <Compile Include="DataWorkers\MapLoader.cs" />
     <Compile Include="Environment\Creature.cs" />
     <Compile Include="Utils\Enum.cs" />
     <Compile Include="Environment\Game.cs" />

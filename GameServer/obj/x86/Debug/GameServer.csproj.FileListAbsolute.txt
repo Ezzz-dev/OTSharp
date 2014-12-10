@@ -1,0 +1,4 @@
+E:\Ellestia Development\Tibiasharp\OTSharp\GameServer\bin\Debug\GameServer.exe
+E:\Ellestia Development\Tibiasharp\OTSharp\GameServer\bin\Debug\GameServer.pdb
+E:\Ellestia Development\Tibiasharp\OTSharp\GameServer\obj\x86\Debug\GameServer.exe
+E:\Ellestia Development\Tibiasharp\OTSharp\GameServer\obj\x86\Debug\GameServer.pdb
