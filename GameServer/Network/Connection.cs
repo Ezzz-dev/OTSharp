@@ -142,6 +142,7 @@ namespace GameServer.Network
 
         /// <summary>
         /// This method is called externally by protocol class when a connection is first received
+        /// basically this setups the protocol for the given connection
         /// </summary>
         public void onConnectionInit()
         {
@@ -171,6 +172,11 @@ namespace GameServer.Network
             }
         }
 
+        /// <summary>
+        /// Called when there's an incoming packet to the client
+        /// Called by listenConnection method
+        /// </summary>
+        /// <param name="result"></param>
         private void onIncomingPacket(IAsyncResult result)
         {
             if (!EndRead(result))
@@ -184,6 +190,11 @@ namespace GameServer.Network
             parsePacket(packetType, msg);
         }
 
+        /// <summary>
+        /// Pretty self explanatory
+        /// </summary>
+        /// <param name="packetType"></param>
+        /// <param name="msg"></param>
         private void parsePacket(byte packetType, NetworkMessage msg)
         {
 #if DEBUG
@@ -262,6 +273,7 @@ namespace GameServer.Network
                 case 0x8C: // Look
                     break;
                 case 0x96: // Say something
+                    parseSay(msg);
                     break;
                 case 0x97: // Request Channels
                     break;
@@ -422,6 +434,39 @@ namespace GameServer.Network
                 SendLoginDisconnectMessage("Invalid position.");
                 Disconnect();
             }
+        }
+
+        #endregion
+
+        #region Protocol Parse
+
+        private void parseSay(NetworkMessage msg)
+        {
+            TalkType type = (TalkType)msg.ReadByte();
+            string privateTo = "";
+            short channelId = 0;
+
+            switch (type)
+            {
+                case TalkType.PrivateChannel:
+                case TalkType.PrivateChannelRed:
+                case TalkType.RuleViolationAnswer:
+                    privateTo = msg.ReadString();
+                    break;
+                case TalkType.ChannelYellow:
+                case TalkType.ChannelRed:
+                case TalkType.ChannelRedAnonymous:
+                    channelId = msg.ReadShort();
+                    break;
+                default:
+                    break;
+            }
+
+            string message = msg.ReadString();
+            if (message.Length > 255)
+                return;
+
+            Game.CreatureSpeak(Player, type, message, privateTo, channelId);
         }
 
         #endregion
@@ -755,6 +800,54 @@ namespace GameServer.Network
             msg.WriteByte(effect);
         }
 
+        private void AddCreatureSpeak(NetworkMessage msg, Creature creature, TalkType type, string message, short channelId = 0, int time = 0 /* Used for RuleViolations */)
+        {
+            msg.WriteByte(0xAA);
+            // Here should be statement GUID, but Tibia 7.6 didn't had it :P
+            if (type != TalkType.ChannelRedAnonymous)
+            {
+                if (type != TalkType.RuleViolationAnswer)
+                {
+                    msg.WriteString(creature.Name);
+                }
+                else
+                {
+                    // This is handled in Rule Violations channel
+                    msg.WriteString("Gamemaster");
+                }
+            }
+            else
+            {
+                msg.WriteString("");
+            }
+
+            msg.WriteByte((byte)type);
+
+            switch (type)
+            {
+                case TalkType.Say:
+                case TalkType.Whisper:
+                case TalkType.Yell:
+                case TalkType.MonsterSay:
+                case TalkType.MonsterYell:
+                    AddPosition(msg, creature.Position);
+                    break;
+                case TalkType.ChannelYellow:
+                case TalkType.ChannelRed:
+                case TalkType.ChannelRedAnonymous:
+                case TalkType.ChannelOrange:
+                    msg.WriteShort(channelId);
+                    break;
+                case TalkType.RuleViolationChannel:
+                    msg.WriteInt(time);
+                    break;
+                default:
+                    break;
+            }
+
+            msg.WriteString(message);
+        }
+
         #endregion
 
         #region Protocol Send
@@ -913,6 +1006,13 @@ namespace GameServer.Network
                     Send(msg);
                 }
             }
+        }
+
+        public void SendCreatureSay(Creature creature, TalkType type, string message)
+        {
+            NetworkMessage msg = new NetworkMessage();
+            AddCreatureSpeak(msg, creature, type, message);
+            Send(msg);
         }
 
         #endregion

@@ -63,4 +63,23 @@ namespace GameServer.Utils
         Extra = 10,
         Last = 11
     }
+
+    public enum TalkType : byte
+    {
+        Say = 0x01,
+        Whisper = 0x02,
+        Yell = 0x03,
+        PrivateChannel = 0x04,
+        ChannelYellow = 0x05,
+        RuleViolationChannel = 0x06,
+        RuleViolationAnswer = 0x07,
+        RuleViolationContinue = 0x08,
+        Broadcast = 0x09,
+        ChannelRed = 0x0A, // #c <text>
+        PrivateChannelRed = 0x0B, // @player@ <text>
+        ChannelOrange = 0x0C,
+        ChannelRedAnonymous = 0x0D, // #d <text>
+        MonsterSay = 0x10,
+        MonsterYell = 0x11
+    }
 }

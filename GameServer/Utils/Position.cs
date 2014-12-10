@@ -38,6 +38,23 @@ namespace GameServer.Utils
         public byte Z;
 
         /// <summary>
+        /// Check if 2 positions are in 1x1 range
+        /// </summary>
+        /// <param name="pos1"></param>
+        /// <param name="pos2"></param>
+        /// <returns></returns>
+        public static bool AreInRange(Position pos1, Position pos2, int deltax = 1, int deltay = 1)
+        {
+            if (Math.Abs(pos1.X - pos2.X) > deltax ||
+                Math.Abs(pos1.Y - pos2.Y) > deltay)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Get an adjacent position based on the given direction
         /// </summary>
         /// <param name="direction"></param>

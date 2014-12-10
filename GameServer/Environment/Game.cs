@@ -224,6 +224,76 @@ namespace GameServer.Environment
             creature.StandingTile.MoveCreature(creature, toTile);
         }
 
+        /// <summary>
+        /// Triggered when any creature speaks
+        /// We're basically using "Creature" since this function will handle NPCs and monsters speaking
+        /// </summary>
+        /// <param name="creature"></param>
+        /// <param name="type"></param>
+        /// <param name="message"></param>
+        /// <param name="privateTo"></param>
+        /// <param name="channelId"></param>
+        public static void CreatureSpeak(Creature creature, TalkType type, string message, string privateTo, short channelId = 0)
+        {
+            HashSet<Player> spectators = new HashSet<Player>();
+            switch (type)
+            {
+                case TalkType.Say:
+                    GetSpectators(spectators, creature.Position, false, 
+                        Map.maxClientViewportX, Map.maxClientViewportX, Map.maxClientViewportY, Map.maxClientViewportY);
+                    foreach (Player p in spectators)
+                    {
+                        p.Connection.SendCreatureSay(creature, type, message);
+                    }
+                    break;
+                case TalkType.Whisper:
+                     GetSpectators(spectators, creature.Position, false, 
+                        Map.maxClientViewportX, Map.maxClientViewportX, Map.maxClientViewportY, Map.maxClientViewportY);
+                    foreach (Player p in spectators)
+                    {
+                        if (Position.AreInRange(p.Position, creature.Position))
+                        {
+                            p.Connection.SendCreatureSay(creature, type, message);
+                        }
+                        else
+                        {
+                            p.Connection.SendCreatureSay(creature, type, "pspsps");
+                        }
+                    }
+                    break;
+                case TalkType.Yell:
+                    // TODO: Yelling exhaustion, 30 seconds
+                    GetSpectators(spectators, creature.Position, false, 
+                        18, 18, 14, 14);
+                    foreach (Player p in spectators)
+                    {
+                        p.Connection.SendCreatureSay(creature, type, message.ToUpper());
+                    }
+                    break;
+                case TalkType.PrivateChannel:
+                case TalkType.PrivateChannelRed:
+                case TalkType.RuleViolationAnswer:
+
+                    break;
+                case TalkType.ChannelYellow:
+                case TalkType.ChannelRed:
+                case TalkType.ChannelRedAnonymous:
+
+                    break;
+                case TalkType.Broadcast:
+
+                    break;
+                case TalkType.RuleViolationContinue:
+
+                    break;
+                case TalkType.RuleViolationChannel:
+
+                    break;
+                default:
+                    break;
+            }
+        }
+
         #endregion
     }
 }

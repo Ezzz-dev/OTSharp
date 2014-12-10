@@ -29,6 +29,9 @@ namespace GameServer.Environment
     {
         #region Properties
 
+        public readonly int maxClientViewportX = 8;
+        public readonly int maxClientViewportY = 6;
+
         private Dictionary<Position, Tile> Tiles;
 
         #endregion
