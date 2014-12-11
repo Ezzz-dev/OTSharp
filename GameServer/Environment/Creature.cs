@@ -115,5 +115,49 @@ namespace GameServer.Environment
         }
 
         #endregion
+
+        #region Override Events
+
+        /// <summary>
+        /// Event called when a creature speaks
+        /// </summary>
+        /// <param name="creature"></param>
+        /// <param name="type"></param>
+        /// <param name="message"></param>
+        public virtual bool onCreatureSpeak(Creature creature, TalkType type, string message)
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Event called when this creature dies
+        /// </summary>
+        /// <returns></returns>
+        public virtual bool onDie()
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Event called when a creature appears
+        /// </summary>
+        /// <param name="creature"></param>
+        /// <returns></returns>
+        public virtual bool onCreatureAppear(Creature creature)
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Event called when a creature disappears
+        /// </summary>
+        /// <param name="creature"></param>
+        /// <returns></returns>
+        public virtual bool onCreatureDisappear(Creature creature)
+        {
+            return true;
+        }
+
+        #endregion
     }
 }

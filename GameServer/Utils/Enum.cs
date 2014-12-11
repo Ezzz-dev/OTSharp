@@ -82,4 +82,33 @@ namespace GameServer.Utils
         MonsterSay = 0x10,
         MonsterYell = 0x11
     }
+
+    public enum ChannelID : int
+    {
+        Guild = 0x00,
+        RuleViolations = 0x03,
+        GameChat = 0x04,
+        Trade = 0x05,
+        RLChat = 0x06,
+        Help = 0x07, // Help channel must always be ID #7 (client side limitation)
+        Staff = 0x08,
+        Tutor = 0x09,
+        Gamemaster = 0x10,
+        Private = 0xFF
+    }
+
+    public enum MessageType : byte
+    {
+        ConsoleYellow = 0x01,
+        ConsoleLightBlue = 0x04,
+        ConsoleOrange = 0x11,
+        ConsoleWarning = 0x12,
+        EventAdvance = 0x13,
+        EventDefault = 0x14,
+        StatusDefault = 0x15,
+        InfoDescription = 0x16,
+        StatusSmall = 0x17,
+        ConsoleBlue = 0x18,
+        ConsoleRed = 0x19
+    }
 }

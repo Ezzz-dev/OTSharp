@@ -45,6 +45,9 @@ namespace GameServer
             }
             else
             {
+                Console.WriteLine(">> Initializing channels...");
+                Channels.Init();
+                Console.WriteLine(">> Loading map...");
                 if (!Game.Map.LoadMap())
                 {
                     Console.WriteLine("Error: could not load map!");

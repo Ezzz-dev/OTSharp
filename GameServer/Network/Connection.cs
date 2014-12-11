@@ -197,9 +197,6 @@ namespace GameServer.Network
         /// <param name="msg"></param>
         private void parsePacket(byte packetType, NetworkMessage msg)
         {
-#if DEBUG
-            Console.WriteLine("{0} sent 0x{1}.", Player.Name, packetType.ToString("X2"));
-#endif
             switch (packetType)
             {
                 case 0x14: // Logout
@@ -276,18 +273,25 @@ namespace GameServer.Network
                     parseSay(msg);
                     break;
                 case 0x97: // Request Channels
+                    Channels.PlayerRequestChannels(Player);
                     break;
                 case 0x98: // Open Channel
+                    ChannelID channelId = (ChannelID)msg.ReadShort();
+                    Channels.PlayerOpenChannel(Player, channelId);
                     break;
                 case 0x99: // Close Channel
+                    Channels.RemovePlayerFromChannel(Player, (ChannelID)msg.ReadShort());
                     break;
                 case 0x9A: // Open Private Channel
                     break;
                 case 0x9B: // Process Rule Violation Report
+                    parseProcessRuleViolation(msg);
                     break;
                 case 0x9C: // GM closes Rule Violation Report
+                    parseCloseRuleViolation(msg);
                     break;
                 case 0x9D: // Player Cancels Report
+                    RuleViolations.CancelPlayerRuleViolation(Player);
                     break;
                 case 0xA0: // Fight Modes
                     break;
@@ -426,6 +430,7 @@ namespace GameServer.Network
                 Game.setPlayerOnMap(Player, new Position(50, 50, 7));
                 LoggedIn = true;
                 SendJoinGame();
+                SendTextMessage((byte)MessageType.StatusDefault, "Welcome to OTSharp 7.6!");
 
                 listenConnection();
             }
@@ -467,6 +472,26 @@ namespace GameServer.Network
                 return;
 
             Game.CreatureSpeak(Player, type, message, privateTo, channelId);
+        }
+
+        private void parseProcessRuleViolation(NetworkMessage msg)
+        {
+            string reporter = msg.ReadString();
+            Player player = Game.getPlayer(reporter);
+            if (player != null)
+            {
+                RuleViolations.PlayerProcessRuleViolation(Player, player);
+            }
+        }
+
+        private void parseCloseRuleViolation(NetworkMessage msg)
+        {
+            string reporter = msg.ReadString();
+            Player player = Game.getPlayer(reporter);
+            if (player != null)
+            {
+                RuleViolations.CloseRuleViolationReport(player);
+            }
         }
 
         #endregion
@@ -866,7 +891,7 @@ namespace GameServer.Network
             msg.WriteByte(0x0A);
             msg.WriteInt(Player.Id);
             msg.WriteShort(0x0032 /* Client-Side Drawing Speed */);
-            msg.WriteByte(0x00 /* Can Report Bugs */);
+            msg.WriteByte(0x01 /* Can Report Bugs */);
 
             AddMapDescription(msg, Player.Position);
 
@@ -1012,6 +1037,82 @@ namespace GameServer.Network
         {
             NetworkMessage msg = new NetworkMessage();
             AddCreatureSpeak(msg, creature, type, message);
+            Send(msg);
+        }
+
+        public void SendTextMessage(byte type, string message)
+        {
+            NetworkMessage msg = new NetworkMessage();
+            msg.WriteByte(0xB4);
+            msg.WriteByte(type);
+            msg.WriteString(message);
+            Send(msg);
+        }
+
+        public void SendRuleViolationCancel(string name)
+        {
+            NetworkMessage msg = new NetworkMessage();
+            msg.WriteByte(0xB0);
+            msg.WriteString(name);
+            Send(msg);
+        }
+
+        public void SendChannelList(List<Channel> channelList)
+        {
+            NetworkMessage msg = new NetworkMessage();
+            msg.WriteByte(0xAB);
+            msg.WriteByte((byte)channelList.Count);
+            foreach (Channel channel in channelList)
+            {
+                msg.WriteShort((short)channel.Id);
+                msg.WriteString(channel.Name);
+            }
+            Send(msg);
+        }
+
+        public void SendChannel(Channel channel)
+        {
+            NetworkMessage msg = new NetworkMessage();
+            msg.WriteByte(0xAC);
+            msg.WriteShort((short)channel.Id);
+            msg.WriteString(channel.Name);
+            Send(msg);
+        }
+
+        public void SendRuleViolationsChannel(short channelId)
+        {
+            NetworkMessage msg = new NetworkMessage();
+            msg.WriteByte(0xAE);
+            msg.WriteShort(channelId);
+            foreach (Violation violation in RuleViolations.ActiveRuleViolations)
+            {
+                if (violation.IsOpen)
+                {
+                    AddCreatureSpeak(msg, violation.Player, TalkType.RuleViolationChannel, violation.Message, channelId, violation.Time);
+                }
+            }
+            Send(msg);
+        }
+
+        public void SendLockRuleViolationReport()
+        {
+            NetworkMessage msg = new NetworkMessage();
+            msg.WriteByte(0xB1);
+            Send(msg);
+        }
+
+        public void SendRuleViolationReportRemoval(string name)
+        {
+            NetworkMessage msg = new NetworkMessage();
+            msg.WriteByte(0xAF);
+            msg.WriteString(name);
+            Send(msg);
+        }
+
+        public void SendMessageToChannel(Creature creature, TalkType type, string message, short channelId, int time = 0)
+        {
+            NetworkMessage msg = new NetworkMessage();
+            AddCreatureSpeak(msg, creature, type, message, channelId, time);
             Send(msg);
         }
 

@@ -30,8 +30,8 @@ namespace GameServer.Environment
     /// </summary>
     public static class Game
     {
-        private static int PlayerAutoID = 0x1000000;
-        private static int NPCAutoID = 0x2000000;
+        private static int PlayerAutoID = 0x10000000;
+        private static int NPCAutoID = 0x20000000;
         private static int MonsterAutoID = 0x40000000;
 
         #region Properties
@@ -54,7 +54,7 @@ namespace GameServer.Environment
             // TODO: Use IEnumerable Query Instead
             foreach (Player p in Players)
             {
-                if (p.Name == Name)
+                if (p.Name.ToUpper() == Name.ToUpper())
                 {
                     return p;
                 }
@@ -202,6 +202,11 @@ namespace GameServer.Environment
         {
             Creatures.Remove(creature);
             creature.StandingTile.RemoveCreature(creature);
+            if (creature is Player)
+            {
+                Channels.RemovePlayerFromAllChannels((Player)creature);
+                RuleViolations.CloseRuleViolationReport((Player)creature);
+            }
         }
 
         #endregion
@@ -273,25 +278,62 @@ namespace GameServer.Environment
                 case TalkType.PrivateChannel:
                 case TalkType.PrivateChannelRed:
                 case TalkType.RuleViolationAnswer:
-
+                    PlayerTalkTo((Player)creature, type, message, privateTo);
                     break;
                 case TalkType.ChannelYellow:
                 case TalkType.ChannelRed:
                 case TalkType.ChannelRedAnonymous:
-
+                    if (!Channels.PlayerTalkToChannel((Player)creature, (ChannelID)channelId, message, type))
+                    {
+                        // Re-send in default as we weren't able to talk to the given channel
+                        CreatureSpeak(creature, TalkType.Say, message, "");
+                    }
                     break;
                 case TalkType.Broadcast:
-
+                    PlayerBroadcastMessage((Player)creature, message);
                     break;
                 case TalkType.RuleViolationContinue:
-
+                    RuleViolations.PlayerContinueRuleViolationReport((Player)creature, message);
                     break;
-                case TalkType.RuleViolationChannel:
-
+                case TalkType.RuleViolationChannel: // Rule Violation Reporting
+                    RuleViolations.PlayerReportRuleViolation((Player)creature, message);
                     break;
                 default:
                     break;
             }
+        }
+
+        /// <summary>
+        /// Player broadcasts a message
+        /// </summary>
+        /// <param name="player"></param>
+        /// <param name="message"></param>
+        public static void PlayerBroadcastMessage(Player player, string message)
+        {
+            foreach (Player spectator in Players)
+            {
+                spectator.Connection.SendCreatureSay(player, TalkType.Broadcast, message);
+            }
+        }
+
+        /// <summary>
+        /// Player speaks to another player in private
+        /// </summary>
+        /// <param name="player"></param>
+        /// <param name="type"></param>
+        /// <param name="message"></param>
+        /// <param name="receiver"></param>
+        public static void PlayerTalkTo(Player player, TalkType type, string message, string receiver)
+        {
+            Player toPlayer = getPlayer(receiver);
+            if (toPlayer == null)
+            {
+                player.Connection.SendTextMessage((byte)MessageType.StatusSmall, "A player with this name is not online.");
+                return;
+            }
+
+            toPlayer.Connection.SendCreatureSay(player, type, message);
+            player.Connection.SendTextMessage((byte)MessageType.StatusSmall, String.Format("Message sent to {0}.", toPlayer.Name));
         }
 
         #endregion

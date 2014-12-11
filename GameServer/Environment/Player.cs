@@ -36,7 +36,7 @@ namespace GameServer.Environment
         /// <summary>
         /// Initialize
         /// </summary>
-        public Player()
+        public Player() : base()
         {
             Level = 1;
             Experience = 0;
@@ -60,6 +60,7 @@ namespace GameServer.Environment
             Inventory = new Item[(int)Slot.Last];
 
             Connection = null;
+            PrivateChatChannel = null;
         }
 
         #endregion
@@ -94,6 +95,7 @@ namespace GameServer.Environment
         public Item[] Inventory;
 
         public Connection Connection { get; set; }
+        public Channel PrivateChatChannel { get; set; }
 
         #endregion
 
@@ -117,6 +119,28 @@ namespace GameServer.Environment
             return 0;
         }
 
+        #endregion
+
+        #region Events
+
+        /// <summary>
+        /// Event called when the player dies
+        /// </summary>
+        /// <returns></returns>
+        public override bool onDie()
+        {
+            return base.onDie();
+        }
+
+        /// <summary>
+        /// Event called when a creature appears
+        /// </summary>
+        /// <param name="creature"></param>
+        /// <returns></returns>
+        public override bool onCreatureAppear(Creature creature)
+        {
+            return base.onCreatureAppear(creature);
+        }
         #endregion
     }
 }

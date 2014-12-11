@@ -102,6 +102,7 @@ namespace GameServer.Environment
             foreach (Player player in players)
             {
                 player.Connection.SendAddCreature(creature, 1);
+                player.onCreatureAppear(creature);
             }
         }
 
@@ -112,6 +113,7 @@ namespace GameServer.Environment
             foreach (Player player in players)
             {
                 player.Connection.SendRemoveCreature(creature, 1);
+                player.onCreatureDisappear(creature);
             }
         }
 
