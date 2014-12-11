@@ -21,6 +21,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using GameServer.Utils;
 
 namespace GameServer.Environment
@@ -95,6 +97,53 @@ namespace GameServer.Environment
         }
 
         /// <summary>
+        /// Get creatures in a certain area with the given radius
+        /// </summary>
+        /// <param name="centerPos"></param>
+        /// <param name="MultiFloor"></param>
+        /// <param name="MinRangeX"></param>
+        /// <param name="MaxRangeX"></param>
+        /// <param name="MinRangeY"></param>
+        /// <param name="MaxRangeY"></param>
+        /// <returns></returns>
+        public static void GetCreatureSpectators(HashSet<Creature> Spectators, Position centerPos, bool MultiFloor = false, int MinRangeX = 11, int MaxRangeX = 11, int MinRangeY = 11, int MaxRangeY = 11)
+        {
+            foreach (Creature p in Creatures)
+            {
+                int MinRangeZ = centerPos.Z;
+                int MaxRangeZ = centerPos.Z;
+                if (MultiFloor)
+                {
+                    if (centerPos.Z > 7)
+                    {
+                        MinRangeZ = Math.Max(centerPos.Z - 2, 0);
+                        MaxRangeZ = Math.Min(centerPos.Z + 2, 15);
+                    }
+                    else if (centerPos.Z == 6)
+                    {
+                        MinRangeZ = 0;
+                        MaxRangeZ = 8;
+                    }
+                    else if (centerPos.Z == 7)
+                    {
+                        MinRangeZ = 0;
+                        MaxRangeZ = 9;
+                    }
+                    else
+                    {
+                        MinRangeZ = 0;
+                        MaxRangeZ = 7;
+                    }
+                }
+
+                if (p.Position.X - centerPos.X > -MinRangeX && p.Position.X - centerPos.X < MaxRangeX && p.Position.Y - centerPos.Y > -MinRangeY && p.Position.Y - centerPos.Y < MaxRangeY && (p.Position.Z - centerPos.Z > -MinRangeZ || p.Position.Z - centerPos.Z < MaxRangeZ))
+                {
+                    Spectators.Add(p);
+                }
+            }
+        }
+
+        /// <summary>
         /// Get players in a certain area with the given radius
         /// </summary>
         /// <param name="centerPos"></param>
@@ -104,15 +153,10 @@ namespace GameServer.Environment
         /// <param name="MinRangeY"></param>
         /// <param name="MaxRangeY"></param>
         /// <returns></returns>
-        public static void GetSpectators(HashSet<Player> Spectators, Position centerPos, bool MultiFloor = false, int MinRangeX = 11, int MaxRangeX = 11, int MinRangeY = 11, int MaxRangeY = 11)
+        public static void GetPlayerSpectators(HashSet<Player> Spectators, Position centerPos, bool MultiFloor = false, int MinRangeX = 11, int MaxRangeX = 11, int MinRangeY = 11, int MaxRangeY = 11)
         {
             foreach (Player p in Players)
             {
-                if (p.Connection == null || !p.Connection.LoggedIn)
-                {
-                    continue;
-                }
-
                 int MinRangeZ = centerPos.Z;
                 int MaxRangeZ = centerPos.Z;
                 if (MultiFloor)
@@ -173,6 +217,7 @@ namespace GameServer.Environment
         /// <param name="pos"></param>
         public static void setPlayerOnMap(Player player, Position pos)
         {
+
             Player p = getPlayer(player.Name);
             if (p != null)
             {
@@ -186,7 +231,8 @@ namespace GameServer.Environment
                 player.Id = PlayerAutoID++;
                 // Add Player to players list
                 Players.Add(player);
-                Tile tile = Map.getTile(pos); 
+                Creatures.Add(player);
+                Tile tile = Map.getTile(pos);
                 // No checking here if tile is null as this method is called after we've already checked.
                 player.StandingTile = tile;
                 player.Position = tile.Position;
@@ -220,13 +266,24 @@ namespace GameServer.Environment
         /// <param name="direction"></param>
         public static void MoveCreature(Creature creature, Direction direction)
         {
-            Tile toTile = Map.getTile(creature.Position.getAdjacentPosition(direction));
-            if (toTile == null)
+            Task.Factory.StartNew(() =>
             {
-                return;
-            }
+                Tile toTile = Map.getTile(creature.Position.getAdjacentPosition(direction));
+                if (toTile == null)
+                {
+                    return;
+                }
 
-            creature.StandingTile.MoveCreature(creature, toTile);
+                if (toTile.hasNoCreatures())
+                {
+                    creature.StandingTile.MoveCreature(creature, toTile);
+                }
+                else
+                {
+                    Player player = (Player)creature;
+                    player.Connection.SendCancelWalk();
+                }
+            });
         }
 
         /// <summary>
@@ -240,67 +297,86 @@ namespace GameServer.Environment
         /// <param name="channelId"></param>
         public static void CreatureSpeak(Creature creature, TalkType type, string message, string privateTo, short channelId = 0)
         {
-            HashSet<Player> spectators = new HashSet<Player>();
-            switch (type)
+            Task.Factory.StartNew(() =>
             {
-                case TalkType.Say:
-                    GetSpectators(spectators, creature.Position, false, 
-                        Map.maxClientViewportX, Map.maxClientViewportX, Map.maxClientViewportY, Map.maxClientViewportY);
-                    foreach (Player p in spectators)
-                    {
-                        p.Connection.SendCreatureSay(creature, type, message);
-                    }
-                    break;
-                case TalkType.Whisper:
-                     GetSpectators(spectators, creature.Position, false, 
-                        Map.maxClientViewportX, Map.maxClientViewportX, Map.maxClientViewportY, Map.maxClientViewportY);
-                    foreach (Player p in spectators)
-                    {
-                        if (Position.AreInRange(p.Position, creature.Position))
+                HashSet<Creature> spectators = new HashSet<Creature>();
+                switch (type)
+                {
+                    case TalkType.Say:
+                        GetCreatureSpectators(spectators, creature.Position, false,
+                            Map.maxClientViewportX, Map.maxClientViewportX, Map.maxClientViewportY, Map.maxClientViewportY);
+                        foreach (Creature c in spectators)
                         {
-                            p.Connection.SendCreatureSay(creature, type, message);
+                            if (c is Player)
+                            {
+                                Player player = (Player)c;
+                                player.Connection.SendCreatureSay(creature, type, message);
+                            }
+
+                            c.onCreatureSpeak(creature, type, message);
                         }
-                        else
+                        break;
+                    case TalkType.Whisper:
+                        GetCreatureSpectators(spectators, creature.Position, false,
+                            Map.maxClientViewportX, Map.maxClientViewportX, Map.maxClientViewportY, Map.maxClientViewportY);
+                        foreach (Creature c in spectators)
                         {
-                            p.Connection.SendCreatureSay(creature, type, "pspsps");
+                            if (c is Player)
+                            {
+                                Player player = (Player)c;
+                                if (Position.AreInRange(player.Position, creature.Position))
+                                {
+                                    player.Connection.SendCreatureSay(creature, type, message);
+                                }
+                                else
+                                {
+                                    player.Connection.SendCreatureSay(creature, type, "pspsps");
+                                }
+                            }
+
+                            c.onCreatureSpeak(creature, type, message);
                         }
-                    }
-                    break;
-                case TalkType.Yell:
-                    // TODO: Yelling exhaustion, 30 seconds
-                    GetSpectators(spectators, creature.Position, false, 
-                        18, 18, 14, 14);
-                    foreach (Player p in spectators)
-                    {
-                        p.Connection.SendCreatureSay(creature, type, message.ToUpper());
-                    }
-                    break;
-                case TalkType.PrivateChannel:
-                case TalkType.PrivateChannelRed:
-                case TalkType.RuleViolationAnswer:
-                    PlayerTalkTo((Player)creature, type, message, privateTo);
-                    break;
-                case TalkType.ChannelYellow:
-                case TalkType.ChannelRed:
-                case TalkType.ChannelRedAnonymous:
-                    if (!Channels.PlayerTalkToChannel((Player)creature, (ChannelID)channelId, message, type))
-                    {
-                        // Re-send in default as we weren't able to talk to the given channel
-                        CreatureSpeak(creature, TalkType.Say, message, "");
-                    }
-                    break;
-                case TalkType.Broadcast:
-                    PlayerBroadcastMessage((Player)creature, message);
-                    break;
-                case TalkType.RuleViolationContinue:
-                    RuleViolations.PlayerContinueRuleViolationReport((Player)creature, message);
-                    break;
-                case TalkType.RuleViolationChannel: // Rule Violation Reporting
-                    RuleViolations.PlayerReportRuleViolation((Player)creature, message);
-                    break;
-                default:
-                    break;
-            }
+                        break;
+                    case TalkType.Yell:
+                        // TODO: Yelling exhaustion, 30 seconds
+                        GetCreatureSpectators(spectators, creature.Position, false,
+                            18, 18, 14, 14);
+                        foreach (Creature c in spectators)
+                        {
+                            if (c is Player)
+                            {
+                                Player player = (Player)c;
+                                player.Connection.SendCreatureSay(creature, type, message.ToUpper());
+                            }
+                        }
+                        break;
+                    case TalkType.PrivateChannel:
+                    case TalkType.PrivateChannelRed:
+                    case TalkType.RuleViolationAnswer:
+                        PlayerTalkTo((Player)creature, type, message, privateTo);
+                        break;
+                    case TalkType.ChannelYellow:
+                    case TalkType.ChannelRed:
+                    case TalkType.ChannelRedAnonymous:
+                        if (!Channels.PlayerTalkToChannel((Player)creature, (ChannelID)channelId, message, type))
+                        {
+                            // Re-send in default as we weren't able to talk to the given channel
+                            CreatureSpeak(creature, TalkType.Say, message, "");
+                        }
+                        break;
+                    case TalkType.Broadcast:
+                        PlayerBroadcastMessage((Player)creature, message);
+                        break;
+                    case TalkType.RuleViolationContinue:
+                        RuleViolations.PlayerContinueRuleViolationReport((Player)creature, message);
+                        break;
+                    case TalkType.RuleViolationChannel: // Rule Violation Reporting
+                        RuleViolations.PlayerReportRuleViolation((Player)creature, message);
+                        break;
+                    default:
+                        break;
+                }
+            });
         }
 
         /// <summary>

@@ -48,6 +48,19 @@ namespace GameServer.Environment
 
         #endregion
 
+        #region Booleans
+
+        /// <summary>
+        /// Check if there are creatures on this tile
+        /// </summary>
+        /// <returns></returns>
+        public bool hasNoCreatures()
+        {
+            return Creatures.Count == 0;
+        }
+
+        #endregion
+
         #region Functioning
 
         /// <summary>
@@ -97,34 +110,52 @@ namespace GameServer.Environment
 
         private void onCreatureAdd(Creature creature)
         {
-            HashSet<Player> players = new HashSet<Player>();
-            Game.GetSpectators(players, Position, true);
-            foreach (Player player in players)
+            HashSet<Creature> players = new HashSet<Creature>();
+            Game.GetCreatureSpectators(players, Position, true);
+            foreach (Creature c in players)
             {
-                player.Connection.SendAddCreature(creature, 1);
-                player.onCreatureAppear(creature);
+                if (c is Player)
+                {
+                    Player player = (Player)c;
+                    player.Connection.SendAddCreature(creature, 1);
+                    player.onCreatureAppear(creature);
+                }
+
+                c.onCreatureAppear(creature);
             }
         }
 
         private void onCreatureRemove(Creature creature)
         {
-            HashSet<Player> players = new HashSet<Player>();
-            Game.GetSpectators(players, Position, true);
-            foreach (Player player in players)
+            HashSet<Creature> players = new HashSet<Creature>();
+            Game.GetCreatureSpectators(players, Position, true);
+            foreach (Creature c in players)
             {
-                player.Connection.SendRemoveCreature(creature, 1);
-                player.onCreatureDisappear(creature);
+                if (c is Player)
+                {
+                    Player player = (Player)c;
+                    player.Connection.SendRemoveCreature(creature, 1);
+                    player.onCreatureDisappear(creature);
+                }
+
+                c.onCreatureDisappear(creature);
             }
         }
 
         private void onCreatureMove(Creature creature, Tile toTile)
         {
-            HashSet<Player> players = new HashSet<Player>();
-            Game.GetSpectators(players, Position, true);
-            Game.GetSpectators(players, toTile.Position, true);
-            foreach (Player player in players)
+            HashSet<Creature> players = new HashSet<Creature>();
+            Game.GetCreatureSpectators(players, Position, true);
+            Game.GetCreatureSpectators(players, toTile.Position, true);
+            foreach (Creature c in players)
             {
-                player.Connection.SendCreatureMove(creature, toTile, 1, this, 1);
+                if (c is Player)
+                {
+                    Player player = (Player)c;
+                    player.Connection.SendCreatureMove(creature, toTile, 1, this, 1);
+                }
+
+                c.onCreatureMove(creature, this, toTile);
             }
         }
 

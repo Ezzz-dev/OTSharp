@@ -887,6 +887,11 @@ namespace GameServer.Network
 
         public void SendJoinGame()
         {
+            if (!LoggedIn)
+            {
+                return;
+            }
+
             NetworkMessage msg = new NetworkMessage();
             msg.WriteByte(0x0A);
             msg.WriteInt(Player.Id);
@@ -917,6 +922,11 @@ namespace GameServer.Network
 
         public void SendAddCreature(Creature creature, byte stackPos)
         {
+            if (!LoggedIn)
+            {
+                return;
+            }
+
             NetworkMessage msg = new NetworkMessage();
             AddTileCreature(msg, creature, stackPos);
             Send(msg);
@@ -924,6 +934,11 @@ namespace GameServer.Network
 
         public void SendRemoveCreature(Creature creature, byte stackPos)
         {
+            if (!LoggedIn)
+            {
+                return;
+            }
+
             NetworkMessage msg = new NetworkMessage();
             AddRemoveTileItem(msg, creature.Position, stackPos);
             Send(msg);
@@ -931,6 +946,11 @@ namespace GameServer.Network
 
         public void SendCancelWalk()
         {
+            if (!LoggedIn)
+            {
+                return;
+            }
+
             NetworkMessage msg = new NetworkMessage();
             msg.WriteByte(0xB5);
             msg.WriteByte((byte)Player.Direction);
@@ -939,6 +959,11 @@ namespace GameServer.Network
 
         public void SendCreatureMove(Creature creature, Tile newTile, byte newStackPos, Tile oldTile, byte oldStackPos, bool Teleport = false)
         {
+            if (!LoggedIn)
+            {
+                return;
+            }
+
             NetworkMessage msg = new NetworkMessage();
             if (creature == Player)
             {
@@ -1035,6 +1060,11 @@ namespace GameServer.Network
 
         public void SendCreatureSay(Creature creature, TalkType type, string message)
         {
+            if (!LoggedIn)
+            {
+                return;
+            }
+
             NetworkMessage msg = new NetworkMessage();
             AddCreatureSpeak(msg, creature, type, message);
             Send(msg);
@@ -1042,6 +1072,11 @@ namespace GameServer.Network
 
         public void SendTextMessage(byte type, string message)
         {
+            if (!LoggedIn)
+            {
+                return;
+            }
+
             NetworkMessage msg = new NetworkMessage();
             msg.WriteByte(0xB4);
             msg.WriteByte(type);
@@ -1051,6 +1086,11 @@ namespace GameServer.Network
 
         public void SendRuleViolationCancel(string name)
         {
+            if (!LoggedIn)
+            {
+                return;
+            }
+
             NetworkMessage msg = new NetworkMessage();
             msg.WriteByte(0xB0);
             msg.WriteString(name);
@@ -1059,6 +1099,11 @@ namespace GameServer.Network
 
         public void SendChannelList(List<Channel> channelList)
         {
+            if (!LoggedIn)
+            {
+                return;
+            }
+
             NetworkMessage msg = new NetworkMessage();
             msg.WriteByte(0xAB);
             msg.WriteByte((byte)channelList.Count);
@@ -1072,6 +1117,11 @@ namespace GameServer.Network
 
         public void SendChannel(Channel channel)
         {
+            if (!LoggedIn)
+            {
+                return;
+            }
+
             NetworkMessage msg = new NetworkMessage();
             msg.WriteByte(0xAC);
             msg.WriteShort((short)channel.Id);
@@ -1081,6 +1131,11 @@ namespace GameServer.Network
 
         public void SendRuleViolationsChannel(short channelId)
         {
+            if (!LoggedIn)
+            {
+                return;
+            }
+
             NetworkMessage msg = new NetworkMessage();
             msg.WriteByte(0xAE);
             msg.WriteShort(channelId);
@@ -1096,6 +1151,11 @@ namespace GameServer.Network
 
         public void SendLockRuleViolationReport()
         {
+            if (!LoggedIn)
+            {
+                return;
+            }
+
             NetworkMessage msg = new NetworkMessage();
             msg.WriteByte(0xB1);
             Send(msg);
@@ -1103,6 +1163,11 @@ namespace GameServer.Network
 
         public void SendRuleViolationReportRemoval(string name)
         {
+            if (!LoggedIn)
+            {
+                return;
+            }
+
             NetworkMessage msg = new NetworkMessage();
             msg.WriteByte(0xAF);
             msg.WriteString(name);
@@ -1111,6 +1176,11 @@ namespace GameServer.Network
 
         public void SendMessageToChannel(Creature creature, TalkType type, string message, short channelId, int time = 0)
         {
+            if (!LoggedIn)
+            {
+                return;
+            }
+
             NetworkMessage msg = new NetworkMessage();
             AddCreatureSpeak(msg, creature, type, message, channelId, time);
             Send(msg);

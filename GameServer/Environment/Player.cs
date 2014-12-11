@@ -132,15 +132,6 @@ namespace GameServer.Environment
             return base.onDie();
         }
 
-        /// <summary>
-        /// Event called when a creature appears
-        /// </summary>
-        /// <param name="creature"></param>
-        /// <returns></returns>
-        public override bool onCreatureAppear(Creature creature)
-        {
-            return base.onCreatureAppear(creature);
-        }
         #endregion
     }
 }

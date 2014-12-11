@@ -158,6 +158,18 @@ namespace GameServer.Environment
             return true;
         }
 
+        /// <summary>
+        /// Event called when a creature moves
+        /// </summary>
+        /// <param name="creature"></param>
+        /// <param name="fromTile"></param>
+        /// <param name="toTile"></param>
+        /// <returns></returns>
+        public virtual bool onCreatureMove(Creature creature, Tile fromTile, Tile toTile)
+        {
+            return true;
+        }
+
         #endregion
     }
 }
